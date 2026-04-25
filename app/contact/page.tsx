@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Phone, Mail, Clock, Loader2 } from "lucide-react";
+import { MapPin, Mail, Clock, Loader2 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,21 +55,11 @@ export default function ContactPage() {
     }
   };
 
-  // Format phone numbers for display
-  const phoneDisplay = contactInfo.phones
-    .map((p) => `${p.label}: ${p.number}`)
-    .join(" | ");
-
   const contactDetails = [
     {
       icon: MapPin,
       title: t("Address", "地址"),
       content: language === "zh" ? contactInfo.address.zh : contactInfo.address.en,
-    },
-    {
-      icon: Phone,
-      title: t("Phone", "電話"),
-      content: phoneDisplay,
     },
     {
       icon: Mail,
@@ -233,26 +223,6 @@ export default function ContactPage() {
                     <p className="text-muted-foreground text-sm">{info.content}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Direct Contact Cards */}
-            <div className="mt-8 space-y-3">
-              <h3 className="font-medium text-foreground mb-3">
-                {t("Call Us Directly", "直接致電我們")}
-              </h3>
-              {contactInfo.phones.map((phone, index) => (
-                <a
-                  key={index}
-                  href={`tel:${phone.number.replace(/[^+\d]/g, "")}`}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                >
-                  <Phone className="h-4 w-4 text-primary" />
-                  <span className="text-sm">
-                    <span className="text-muted-foreground">{phone.label}:</span>{" "}
-                    <span className="font-medium">{phone.number}</span>
-                  </span>
-                </a>
               ))}
             </div>
 
