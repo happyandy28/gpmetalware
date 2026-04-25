@@ -1,23 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { Users, Wrench, Award, Factory, ImageIcon } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
-import { ImageStoreProvider, useImageStore } from "@/lib/image-store";
-import { DisplayImage } from "@/components/display-image";
+import { factoryImages } from "@/lib/static-data";
 
-function AboutContent() {
-  const { t } = useLanguage();
-  const { getImagesByPrefix } = useImageStore();
-
-  // Get ALL factory images without any limitation
-  const factoryImages = getImagesByPrefix("factory-");
-  
-  // Generate image slots - show uploaded images + remaining placeholders
-  const totalSlots = Math.max(8, factoryImages.length);
-  const imageSlots = Array.from({ length: totalSlots }, (_, i) => {
-    const imageId = `factory-${i + 1}`;
-    return { id: imageId, index: i + 1 };
-  });
+export default function AboutPage() {
+  const { t, language } = useLanguage();
 
   const stats = [
     {
@@ -74,21 +63,42 @@ function AboutContent() {
           ))}
         </div>
 
-        {/* Factory Gallery - DISPLAYS ALL IMAGES */}
+        {/* Factory Gallery - Static Images */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
             {t("Our Factory", "我們的工廠")}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {imageSlots.map((slot) => (
-              <DisplayImage
-                key={slot.id}
-                id={slot.id}
-                alt={t(`Factory Image ${slot.index}`, `工廠圖片 ${slot.index}`)}
-                className="rounded-lg"
-                aspectRatio="aspect-video"
-                placeholderIcon={<ImageIcon className="h-8 w-8" />}
-              />
+            {factoryImages.map((item) => (
+              <div
+                key={item.id}
+                className="relative aspect-video bg-muted rounded-lg overflow-hidden"
+              >
+                <Image
+                  src={item.image}
+                  alt={language === "zh" ? item.title.zh : item.title.en}
+                  fill
+                  className="object-cover"
+                  onError={(e) => {
+                    // Hide broken image and show placeholder
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                    const placeholder = target.nextElementSibling;
+                    if (placeholder) {
+                      (placeholder as HTMLElement).style.display = "flex";
+                    }
+                  }}
+                />
+                <div 
+                  className="absolute inset-0 flex-col items-center justify-center text-muted-foreground hidden"
+                  style={{ display: "none" }}
+                >
+                  <ImageIcon className="h-8 w-8" />
+                  <span className="text-xs mt-2">
+                    {language === "zh" ? item.title.zh : item.title.en}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -121,13 +131,5 @@ function AboutContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function AboutPage() {
-  return (
-    <ImageStoreProvider>
-      <AboutContent />
-    </ImageStoreProvider>
   );
 }

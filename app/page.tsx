@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowRight, Users, Wrench, Award, Factory } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/button";
-import { ImageStoreProvider } from "@/lib/image-store";
 
 function HomeContent() {
   const { t } = useLanguage();
@@ -129,9 +128,5 @@ function HomeContent() {
 }
 
 export default function HomePage() {
-  return (
-    <ImageStoreProvider>
-      <HomeContent />
-    </ImageStoreProvider>
-  );
+  return <HomeContent />;
 }

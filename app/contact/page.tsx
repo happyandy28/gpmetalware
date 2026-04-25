@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { contactInfo } from "@/lib/static-data";
 
 // Web3Forms access key - get a free one at https://web3forms.com
+// Replace this with your actual access key
 const WEB3FORMS_ACCESS_KEY = "YOUR_ACCESS_KEY_HERE";
 
 export default function ContactPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,6 @@ export default function ContactPage() {
     
     // Add Web3Forms access key and recipient email
     formData.append("access_key", WEB3FORMS_ACCESS_KEY);
-    formData.append("to_email", "andylai@gpmetalware.com");
     formData.append("subject", "New Contact Form Submission - GP Metalware");
     formData.append("from_name", "GP Metalware Website");
 
@@ -55,32 +56,31 @@ export default function ContactPage() {
     }
   };
 
-  const contactInfo = [
+  // Format phone numbers for display
+  const phoneDisplay = contactInfo.phones
+    .map((p) => `${p.label}: ${p.number}`)
+    .join(" | ");
+
+  const contactDetails = [
     {
       icon: MapPin,
       title: t("Address", "地址"),
-      content: t(
-        "Dongguan City, Guangdong Province, China",
-        "中國廣東省東莞市"
-      ),
+      content: language === "zh" ? contactInfo.address.zh : contactInfo.address.en,
     },
     {
       icon: Phone,
       title: t("Phone", "電話"),
-      content: "+86 769 1234 5678",
+      content: phoneDisplay,
     },
     {
       icon: Mail,
       title: t("Email", "電子郵件"),
-      content: "andylai@gpmetalware.com",
+      content: contactInfo.email,
     },
     {
       icon: Clock,
       title: t("Business Hours", "營業時間"),
-      content: t(
-        "Monday - Friday: 9:00 AM - 6:00 PM (GMT+8)",
-        "週一至週五：上午9:00 - 下午6:00（GMT+8）"
-      ),
+      content: language === "zh" ? contactInfo.businessHours.zh : contactInfo.businessHours.en,
     },
   ];
 
@@ -133,7 +133,10 @@ export default function ContactPage() {
               {t("Send us a Message", "給我們發送消息")}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Hidden fields for Web3Forms */}
               <input type="hidden" name="botcheck" className="hidden" />
+              <input type="hidden" name="redirect" value="" />
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">
@@ -203,7 +206,7 @@ export default function ContactPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     {t("Sending...", "發送中...")}
                   </>
                 ) : (
@@ -219,7 +222,7 @@ export default function ContactPage() {
               {t("Contact Information", "聯繫信息")}
             </h2>
             <div className="space-y-6">
-              {contactInfo.map((info, index) => (
+              {contactDetails.map((info, index) => (
                 <div key={index} className="flex gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
                     <info.icon className="h-5 w-5 text-primary" />
@@ -228,9 +231,29 @@ export default function ContactPage() {
                     <h3 className="font-medium text-foreground">
                       {info.title}
                     </h3>
-                    <p className="text-muted-foreground">{info.content}</p>
+                    <p className="text-muted-foreground text-sm">{info.content}</p>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Direct Contact Cards */}
+            <div className="mt-8 space-y-3">
+              <h3 className="font-medium text-foreground mb-3">
+                {t("Call Us Directly", "直接致電我們")}
+              </h3>
+              {contactInfo.phones.map((phone, index) => (
+                <a
+                  key={index}
+                  href={`tel:${phone.number.replace(/[^+\d]/g, "")}`}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                >
+                  <Phone className="h-4 w-4 text-primary" />
+                  <span className="text-sm">
+                    <span className="text-muted-foreground">{phone.label}:</span>{" "}
+                    <span className="font-medium">{phone.number}</span>
+                  </span>
+                </a>
               ))}
             </div>
 

@@ -1,93 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { Upload, Trash2, ImageIcon, LogOut, Plus } from "lucide-react";
+import { ImageIcon, FolderOpen, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageStoreProvider, useImageStore } from "@/lib/image-store";
+import { factoryImages, products } from "@/lib/static-data";
 
-function ImageUploader({
-  id,
-  label,
-  aspectRatio = "aspect-square",
-}: {
-  id: string;
-  label: string;
-  aspectRatio?: string;
-}) {
-  const { getImage, setImage, removeImage } = useImageStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageSrc = getImage(id);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(id, reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  return (
-    <div className="border rounded-lg overflow-hidden bg-card">
-      <div className={`relative ${aspectRatio} bg-muted`}>
-        {imageSrc ? (
-          <>
-            <Image
-              src={imageSrc}
-              alt={label}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-            <button
-              onClick={() => removeImage(id)}
-              className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              title="Remove image"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
-          >
-            <Upload className="h-8 w-8 mb-2" />
-            <span className="text-sm">Click to upload</span>
-          </button>
-        )}
-      </div>
-      <div className="p-2 text-center">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        {imageSrc && (
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="block w-full mt-1 text-xs text-primary hover:underline"
-          >
-            Replace
-          </button>
-        )}
-      </div>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-    </div>
-  );
-}
-
-function DashboardContent() {
+export default function AdminDashboardPage() {
   const router = useRouter();
-  const { getImagesByPrefix } = useImageStore();
-  const [factorySlots, setFactorySlots] = useState(8);
-  const [productSlots, setProductSlots] = useState(12);
 
   useEffect(() => {
     // Check authentication
@@ -101,20 +21,16 @@ function DashboardContent() {
     router.push("/admin");
   };
 
-  // Count actual uploaded images
-  const factoryImages = getImagesByPrefix("factory-");
-  const productImages = getImagesByPrefix("product-");
-
   return (
     <div className="py-8">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Image Dashboard
+              Image Management Guide
             </h1>
             <p className="text-muted-foreground mt-1">
-              Manage factory and product images
+              Static image configuration for GitHub Pages deployment
             </p>
           </div>
           <Button variant="outline" onClick={handleLogout}>
@@ -123,91 +39,98 @@ function DashboardContent() {
           </Button>
         </div>
 
-        {/* Factory Images Section */}
+        {/* Instructions */}
+        <div className="mb-8 p-6 rounded-lg border bg-card">
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <FolderOpen className="h-5 w-5 text-primary" />
+            How to Add Images
+          </h2>
+          <div className="space-y-4 text-muted-foreground">
+            <p>
+              For static deployment (GitHub Pages), images must be placed in the{" "}
+              <code className="bg-muted px-2 py-1 rounded text-sm">public/images/</code>{" "}
+              directory before building.
+            </p>
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <h3 className="font-medium text-foreground mb-2">Directory Structure:</h3>
+              <pre className="text-sm font-mono">
+{`public/
+├── images/
+│   ├── factory/
+│   │   ├── factory-1.jpg
+│   │   ├── factory-2.jpg
+│   │   └── ...
+│   └── products/
+│       ├── product-1.jpg
+│       ├── product-2.jpg
+│       └── ...`}
+              </pre>
+            </div>
+            <p>
+              After adding images, run <code className="bg-muted px-2 py-1 rounded text-sm">npm run build</code>{" "}
+              to generate the static site.
+            </p>
+          </div>
+        </div>
+
+        {/* Factory Images List */}
         <section className="mb-12">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">
-                Factory Images
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {factoryImages.length} of {factorySlots} images uploaded
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setFactorySlots((prev) => prev + 4)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add More Slots
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array.from({ length: factorySlots }, (_, i) => (
-              <ImageUploader
-                key={`factory-${i + 1}`}
-                id={`factory-${i + 1}`}
-                label={`Factory Image ${i + 1}`}
-                aspectRatio="aspect-video"
-              />
+          <h2 className="text-xl font-semibold text-foreground mb-4">
+            Factory Images ({factoryImages.length} configured)
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {factoryImages.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-4 p-4 rounded-lg border bg-card"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded bg-muted">
+                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{item.title.en}</p>
+                  <p className="text-sm text-muted-foreground font-mono">{item.image}</p>
+                </div>
+              </div>
             ))}
           </div>
         </section>
 
-        {/* Product Images Section */}
+        {/* Product Images List */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">
-                Product Images
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {productImages.length} of {productSlots} images uploaded
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setProductSlots((prev) => prev + 4)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add More Slots
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {Array.from({ length: productSlots }, (_, i) => (
-              <ImageUploader
-                key={`product-${i + 1}`}
-                id={`product-${i + 1}`}
-                label={`Product ${i + 1}`}
-                aspectRatio="aspect-square"
-              />
+          <h2 className="text-xl font-semibold text-foreground mb-4">
+            Product Images ({products.length} configured)
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {products.map((product) => (
+              <div
+                key={product.id}
+                className="flex items-center gap-4 p-4 rounded-lg border bg-card"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded bg-muted">
+                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground text-sm">{product.name.en}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{product.image}</p>
+                </div>
+              </div>
             ))}
           </div>
         </section>
 
-        {/* Info Box */}
+        {/* Edit Instructions */}
         <div className="mt-8 p-4 rounded-lg bg-muted/50 border">
           <h3 className="font-medium text-foreground mb-2">
-            <ImageIcon className="h-4 w-4 inline mr-2" />
-            Image Storage Info
+            To modify product/factory data:
           </h3>
           <p className="text-sm text-muted-foreground">
-            Images are stored in your browser&apos;s local storage. They will persist
-            across sessions but are specific to this browser. For production use,
-            consider using cloud storage like Vercel Blob.
+            Edit the file <code className="bg-muted px-2 py-1 rounded">lib/static-data.ts</code>{" "}
+            to add, remove, or update products and factory images. Each entry includes
+            name (EN/ZH), description, category, and image path.
           </p>
         </div>
       </div>
     </div>
-  );
-}
-
-export default function AdminDashboardPage() {
-  return (
-    <ImageStoreProvider>
-      <DashboardContent />
-    </ImageStoreProvider>
   );
 }
