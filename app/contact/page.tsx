@@ -9,9 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { contactInfo } from "@/lib/static-data";
 
-// Web3Forms access key - get a free one at https://web3forms.com
-// Replace this with your actual access key
-const WEB3FORMS_ACCESS_KEY = "YOUR_ACCESS_KEY_HERE";
+// Web3Forms access key
+const WEB3FORMS_ACCESS_KEY = "bf3ff4bc-ce8a-4512-9068-703ae54fd2bb";
 
 export default function ContactPage() {
   const { t, language } = useLanguage();
