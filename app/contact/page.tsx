@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
+// Web3Forms access key - get a free one at https://web3forms.com
+const WEB3FORMS_ACCESS_KEY = "YOUR_ACCESS_KEY_HERE";
+
 export default function ContactPage() {
   const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,33 +23,31 @@ export default function ContactPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      company: formData.get("company") as string,
-      phone: formData.get("phone") as string,
-      message: formData.get("message") as string,
-    };
+    
+    // Add Web3Forms access key and recipient email
+    formData.append("access_key", WEB3FORMS_ACCESS_KEY);
+    formData.append("to_email", "andylai@gpmetalware.com");
+    formData.append("subject", "New Contact Form Submission - GP Metalware");
+    formData.append("from_name", "GP Metalware Website");
 
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
+      const result = await response.json();
 
-      setIsSubmitted(true);
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        throw new Error(result.message || "Failed to send message");
+      }
     } catch (err) {
       setError(
         t(
-          "Failed to send message. Please try again or email us directly.",
-          "發送消息失敗。請重試或直接給我們發送電子郵件。"
+          "Failed to send message. Please try again or email us directly at andylai@gpmetalware.com",
+          "發送消息失敗。請重試或直接發送電子郵件至 andylai@gpmetalware.com"
         )
       );
     } finally {
@@ -132,6 +133,7 @@ export default function ContactPage() {
               {t("Send us a Message", "給我們發送消息")}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <input type="hidden" name="botcheck" className="hidden" />
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">
